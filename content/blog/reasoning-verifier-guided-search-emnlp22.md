@@ -1,6 +1,6 @@
 ---
 author: ["Navid Madani"]
-title: "Enabling Reasoning Capabilities in Large Language Models"
+title: "Enabling Reasoning Capabilities in Large Language Models - Part 1"
 date: "2024-03-15"
 tags: ["Reasoning"]
 ShowToc: true
