@@ -144,7 +144,7 @@ we choose to implement a beam search algorithm to search over the possible trees
 and continue the algorithm until we reach the stopping criterion. The figure below shows two steps of the proof search algorithm using 
 3 beams.
 
-![beam search](/homepage/images/ps-beamssearch.png)
+![beam search](/homepage/images/ps-beamsearch.png)
 
 ## Evaluation and Results
 
