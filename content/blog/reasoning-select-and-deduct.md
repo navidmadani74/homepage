@@ -148,6 +148,12 @@ and continue the algorithm until we reach the stopping criterion. The figure bel
 
 ## Evaluation and Results
 
+I used the same evaluation metrics as the NLProofs paper which are **accuracy** and **F1** score for leaves, intermediate nodes
+and deduction steps and also the overall accuracy. For this initial model up to this point here are the results on the first 
+and second EntailmentBank dataset tasks:
+
+![results](/homepage/images/sandd-results.png)
+
 ## Conclusion and Future Work
 
 As shown above, with this simple design we were able to achieve a model that is able to perform reasoning task with high accuracy 
