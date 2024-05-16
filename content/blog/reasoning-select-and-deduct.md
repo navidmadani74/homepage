@@ -10,7 +10,7 @@ TocOpen: true
 
 You can find all the experiments and code for this part in the following github repo.
 <div align="center">
-	<a href="https://github.com/navidmdn/llm_reasoning/tree/main/select_and_deduct">
+	<a href="https://github.com/navidmdn/llm_reasoning/">
 	    <img src="/homepage/images/github-mark.png" width="40" height="40" alt="Github">
 	</a>
 </div>
