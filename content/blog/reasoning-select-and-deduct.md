@@ -97,8 +97,58 @@ overfitting to the training data.
 
 ## Deduction Module
 
-The deduction module is responsible for combining the selected premises together to form a new premise. I tried to train
-this module in a way that is independent of selection and the hypothesis that we want to prove. In the most general case,
-it takes a set of premises and tries to deduct a new premise from them.
+The deduction module is more straightforward than the selection module since the only task it needs to do is logical 
+deduction. The input to the deduction module is the selected premises. The output is the next step in the reasoning process.
+There are some important considerations that I want to mention here. First, the deduction module should be able to handle
+the cases were the selected premises are not enough to make a deduction. In that case, the model should be able to output 
+a valid output and not hallucinate. One trick that I could think of to mitigate this issue is to augment the dataset with
+some examples where the selected premises are not enough to make a deduction with the output indicating the logical AND of 
+the selected premises. For example, if the selected premises are "the dog is red" and "the fox is wild" we augment the training
+dataset with an example where the output is "the dog is red and the fox is wild". This way, the model should be able to learn
+that it should output the logical AND of the selected premises if it is not able to make a deduction. Second, sometimes the
+model is able to make a correct deduction but it can somehow rephrase it to make it closer to the hypothesis or in the right 
+direction. For example, from a single compound premise "the dog is red and the fox is wild" the model can output "the dog is red" if 
+that is the hypothesis that we are looking for. To mitigate this issue, we can append the hypothesis to the input of the 
+deduction model. In this way, the model should be able to output the correct deduction that is closer to the hypothesis but
+on the other hand we are risking the possibility of the model outputting the hypothesis directly when it doesn't have enough
+information to make a deduction. Again, I also used a Flan-T5 model to implement the deduction module.
+
+## Dataset
+
+For data, I used the same dataset that was used in the NLProofs paper but I also used one single model to work on both
+datasets (Proof-writer and EntailmentBank) with the hope to achieve a more generalized model at the end. I took each of
+the branches of the entailment trees in those datasets and converted them to a sequence to sequence format for both selection
+and deduction modules.
 
 ## Proof Search
+
+The proof search component puts all the modules together and tries to find the proof for a given hypothesis. I began by 
+implementing a greedy approach where I first select the premises using the selection by doing greedy generation and then input 
+the selected premises to the deduction module to get the next step. Then we add the new premise to the context of the selector
+to perform next iteration and so on. The stopping criterion is when the model outputs the hypothesis or when the model reaches
+maximum number of iterations. To estimate if we've reached the stopping criterion, we use the [BLEURT model](https://github.com/google-research/bleurt)
+by google which is a trained metric which estimates the similarity between two texts. We use this metric to estimate how close the
+induced sentence to the hypothesis is and if it is close enough we stop the proof search.
+
+Now, the problem with this approach is similar to any greedy approach when we are searching over an answer in a tree. We have
+a score for each step of the proof given the beam scores of the selection generator. Given those scores we can build many possible 
+trees and we have to choose the best one. This reduces our problem to a tree search problem. Since doing a complete search is not feasible,
+we choose to implement a beam search algorithm to search over the possible trees. At each iteration we only keep the top-k trees
+and continue the algorithm until we reach the stopping criterion. The figure below shows two steps of the proof search algorithm using 
+3 beams.
+
+![beam search](/homepage/images/ps-beamssearch.png)
+
+## Evaluation and Results
+
+## Conclusion and Future Work
+
+As shown above, with this simple design we were able to achieve a model that is able to perform reasoning task with high accuracy 
+close to the performance of the much more complicated models like NLProofs and MetGEN. This shows the importance of designing
+a simple method with clear objectives. In the future, I plan to work on improving the objective of both components as discussed
+above to mitigate possible issues and improve the performance of the model. Also, as shown in Metgen paper, it is worth to
+explore the possibility of using a general scoring function to score a whole generated tree instead of scoring each step and
+combining them together which can result in a better performance. 
+
+
+
