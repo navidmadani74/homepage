@@ -194,4 +194,48 @@ tokenizer.padding_side = "left"
 The rest of the script is straight forward and uses general tutorials for setting up the training pipeline which uses
 `transformers`, `trl` and `peft` libraries. You can find the full script in the github repo above.
 
+# Training
 
+At the end you just need to define your quantization config from `bitsandbytes` and load the model with
+it's adaptor:
+
+```python
+torch_dtype = torch.bfloat16
+quant_storage_dtype = torch.bfloat16
+bnb_4bit_use_double_quant = True
+
+quantization_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_use_double_quant=bnb_4bit_use_double_quant,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch_dtype,
+    bnb_4bit_quant_storage=quant_storage_dtype,
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    script_args.model_id,
+    quantization_config=quantization_config,
+    attn_implementation="flash_attention_2" if script_args.flash_attention else None,
+    torch_dtype=quant_storage_dtype,
+    use_cache=False if training_args.gradient_checkpointing else True,
+    cache_dir=script_args.cache_dir,
+)
+```
+
+This will load the model with the quantization config and you can start training your model using `SFTTrainer` from trl:
+
+```python
+trainer = SFTTrainer(
+    model=model,
+    args=training_args,
+    data_collator=data_collator,
+    train_dataset=train_dataset,
+    eval_dataset=dev_datasets,
+    peft_config=peft_config,
+    tokenizer=tokenizer,
+    compute_metrics=compute_metrics,
+    max_seq_length=4096,
+    callbacks=[EarlyStoppingCallback(early_stopping_patience=10)],
+    packing=False,
+)
+```
